@@ -12,7 +12,9 @@ from sklearn.model_selection import train_test_split
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input', default='data/demo/token_losses.csv')
+parser.add_argument('--output', default='results')
 args = parser.parse_args()
+output = Path(args.output)
 df = pd.read_csv(args.input)
 required = {'document_id', 'member', 'loss'}
 if not required.issubset(df.columns):
@@ -47,7 +49,7 @@ rf_score = rf.predict_proba(X[test_idx])[:, 1]
 base_score = -mean_loss[test_idx]
 y_test = y[test_idx]
 metrics = []
-Path('results').mkdir(exist_ok=True)
+output.mkdir(parents=True, exist_ok=True)
 roc_fig, roc_ax = plt.subplots(figsize=(7, 5))
 for name, score, threshold in [('Mean token loss', base_score, None), ('Histogram + random forest', rf_score, .5)]:
     auc = roc_auc_score(y_test, score)
@@ -65,7 +67,7 @@ for name, score, threshold in [('Mean token loss', base_score, None), ('Histogra
         ConfusionMatrixDisplay.from_predictions(y_test, pred, ax=ax, colorbar=False)
         ax.set_title('Histogram + random forest')
         fig.tight_layout()
-        fig.savefig('results/confusion_matrix.png', dpi=150)
+        fig.savefig(output / 'confusion_matrix.png', dpi=150)
         plt.close(fig)
 roc_ax.plot([0, 1], [0, 1], 'k--', label='Random guess')
 roc_ax.set_xlabel('False positive rate')
@@ -73,9 +75,9 @@ roc_ax.set_ylabel('True positive rate')
 roc_ax.set_title('Document-level membership inference')
 roc_ax.legend()
 roc_fig.tight_layout()
-roc_fig.savefig('results/roc_curve.png', dpi=150)
-pd.DataFrame(metrics).to_csv('results/metrics.csv', index=False)
+roc_fig.savefig(output / 'roc_curve.png', dpi=150)
+pd.DataFrame(metrics).to_csv(output / 'metrics.csv', index=False)
 print(pd.DataFrame(metrics).to_string(index=False))
-print('Saved results/metrics.csv, roc_curve.png, confusion_matrix.png')
+print(f'Saved metrics and plots in {output}')
 if 'demo' in args.input:
     print('WARNING: These are SYNTHETIC demo metrics, not research findings.')

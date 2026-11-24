@@ -1,0 +1,10 @@
+{
+  "per_class": 100,
+  "epochs": 3,
+  "seed": 42,
+  "model": "distilgpt2",
+  "device": "cpu",
+  "tokens_per_excerpt": 64,
+  "dataset": "ag_news",
+  "membership": "controlled fine-tuning only"
+}
